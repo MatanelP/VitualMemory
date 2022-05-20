@@ -30,6 +30,32 @@ uint64_t getAddressForLevel(uint64_t virtualAddress, int level){
 }
 
 
+uint64_t getFrame(uint64_t frame, uint64_t parent, uint64_t maxFrame){
+    if (frame != 0){
+        // 1. check for empty table:
+
+        if(isEmptyFrame(frame)){ //all rows are 0's
+        //  remove reference from parent
+        removeReference(parent, frame);
+        return frame;
+        }
+
+        //2. unused frame:
+        //
+
+        //3. minimum cyclical distance:
+
+    }
+
+    for (uint64_t child = 0 ; child < PAGE_SIZE ; child++){
+        maxFrame = maxFrame > child ? maxFrame : child;
+        getFrame(child, frame, maxFrame);
+    }
+
+
+
+}
+
 /* Reads a word from the given virtual address
  * and puts its content in *value.
  *
@@ -39,6 +65,23 @@ uint64_t getAddressForLevel(uint64_t virtualAddress, int level){
  */
 int VMread(uint64_t virtualAddress, word_t* value){
   uint64_t offset = getOffset (virtualAddress);
+
+  uint64_t curAddress = 0;
+  uint64_t oldAddress = 0;
+  for (int i =0; i < TABLES_DEPTH; ++i){
+      oldAddress = curAddress;
+      curAddress = getAddressForLevel(virtualAddress, i);
+      if (curAddress == 0){
+          uint64_t frame = getFrame(0, 0, 0);// get frame according 3 options
+          clearFrame(frame);
+          // point to new page table from its parent
+      //      PMwrite(oldAddress + curAddress, frame);
+      }
+      //PMread(oldAddress * PAGESIZE + currAddress, pointer to currAddress)
+
+  }
+  // PMwrite(oldAddress * PAGESIZE + offset, value)
+
 
 
   return 0;
