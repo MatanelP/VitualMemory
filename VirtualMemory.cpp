@@ -69,20 +69,25 @@ int VMread(uint64_t virtualAddress, word_t* value){
   uint64_t curAddress = 0;
   uint64_t oldAddress = 0;
   for (int i =0; i < TABLES_DEPTH; ++i){
-      oldAddress = curAddress;
+      //oldAddress = curAddress;
       curAddress = getAddressForLevel(virtualAddress, i);
+      PMread(oldAddress * PAGESIZE + curAddress, (word_t*) curAddress);
       if (curAddress == 0){
           uint64_t frame = getFrame(0, 0, 0);// get frame according 3 options
-          clearFrame(frame);
+          if (i < TABLES_DEPTH - 1){
+              // only need to clear frame if next layer is a table
+              clearFrame(frame);
+          }
+          else{
+              // next layer is not a table, restore page we are looking for into frame
+              //PMrestore(frame, restoredPageIndex);  curAddress?
+          }
           // point to new page table from its parent
-      //      PMwrite(oldAddress + curAddress, frame);
+          PMwrite(oldAddress * PAGESIZE + curAddress, (word_t) frame);
+          oldAddress = curAddress;
       }
-      //PMread(oldAddress * PAGESIZE + currAddress, pointer to currAddress)
-
   }
-  // PMwrite(oldAddress * PAGESIZE + offset, value)
-
-
+  PMread(oldAddress * PAGESIZE + offset, value);
 
   return 0;
 }
