@@ -96,7 +96,8 @@ getFrame (uint64_t virtualPageNum, uint64_t frame, uint64_t parent,
 
 
       // 1. check for empty table:
-      if (isEmptyFrame (frame) && level != TABLES_DEPTH  && frame != unavailableFrame)
+      if (isEmptyFrame (frame) && level != TABLES_DEPTH
+          && frame != unavailableFrame)
         { //all rows are 0's
           //  remove reference from parent
           removeReference (parent, frame);
@@ -118,7 +119,9 @@ getFrame (uint64_t virtualPageNum, uint64_t frame, uint64_t parent,
           if (child != 0)
             {
               *maxFrameNum = *maxFrameNum > child ? *maxFrameNum : child;
-              page = (page << OFFSET_WIDTH) + row; //todo - test with a frame with more than 2 rows
+//              page += (row << (OFFSET_WIDTH / (level+1)));
+              page = (page << OFFSET_WIDTH)
+                     + row; //todo - test with a frame with more than 2 rows
 
               getFrame (virtualPageNum, child, frame,
                         maxFrameNum, level + 1, availableFrame,
