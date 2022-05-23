@@ -120,14 +120,11 @@ getFrame (uint64_t virtualPageNum, uint64_t frame, uint64_t parent,
           if (child != 0)
             {
               *maxFrameNum = *maxFrameNum > child ? *maxFrameNum : child;
-//              page += row * (OFFSET_WIDTH << (TABLES_DEPTH - level - 1));
-              page += row * (pow (PAGE_SIZE, TABLES_DEPTH - level - 1));
-//              page = (page << OFFSET_WIDTH) + row; //todo - test with a frame with more than 2 rows
 
               getFrame (virtualPageNum, child, frame,
                         maxFrameNum, level + 1, availableFrame,
                         evictPageFromFrameNum, parentOfEvictPageFromFrameNum,
-                        currentCyclicalDistance, page, unavailableFrame, pageToEvict);
+                        currentCyclicalDistance, (page << OFFSET_WIDTH) + row, unavailableFrame, pageToEvict);
 
               if (*availableFrame != 0) //found availableFrame
                 {
@@ -158,7 +155,8 @@ word_t getAddress (uint64_t virtualAddress)
           uint64_t pageToEvict = 0;
           getFrame (virtualPageNum, 0, 0, &maxFrameNum,
                     0, &availableFrame, &evictPageFromFrameNum,
-                    &parentOfEvictPageFromFrameNum, 0, 0, oldAddress, &pageToEvict);// get availableFrame according 3 options
+                    &parentOfEvictPageFromFrameNum, 0, 0,
+                    oldAddress, &pageToEvict);// get availableFrame according 3 options
           if (availableFrame == 0 || availableFrame == oldAddress)
             {
               availableFrame = maxFrameNum + 1;
