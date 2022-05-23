@@ -1,5 +1,6 @@
 #include "VirtualMemory.h"
 #include "PhysicalMemory.h"
+#include <cmath>
 
 void clearFrame (uint64_t frame)
 {
@@ -119,9 +120,9 @@ getFrame (uint64_t virtualPageNum, uint64_t frame, uint64_t parent,
           if (child != 0)
             {
               *maxFrameNum = *maxFrameNum > child ? *maxFrameNum : child;
-//              page += (row << (OFFSET_WIDTH / (level+1)));
-              page = (page << OFFSET_WIDTH)
-                     + row; //todo - test with a frame with more than 2 rows
+//              page += row * (OFFSET_WIDTH << (TABLES_DEPTH - level - 1));
+              page += row * (pow (PAGE_SIZE, TABLES_DEPTH - level - 1));
+//              page = (page << OFFSET_WIDTH) + row; //todo - test with a frame with more than 2 rows
 
               getFrame (virtualPageNum, child, frame,
                         maxFrameNum, level + 1, availableFrame,
