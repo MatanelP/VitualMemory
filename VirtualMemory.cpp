@@ -2,34 +2,44 @@
 #include "PhysicalMemory.h"
 #include <cmath>
 
+
+
+/**
+ * Clearing a given frame
+ * @param frame
+ */
 void clearFrame (uint64_t frame)
 {
-
   for (uint64_t i = 0; i < PAGE_SIZE; i++)
     {
       PMwrite (frame * PAGE_SIZE + i, 0);
     }
 }
 
-/*
- * Initialize the virtual memory.
+/**
+ * Initializing the virtual memory
  */
 void VMinitialize ()
 {
   clearFrame (0);
 }
 
-/*
- * extracting the offset from the given logical address
+/**
+ * Extracting the offset from the given logical address
+ * @param virtualAddress
+ * @return
  */
 uint64_t getOffset (uint64_t virtualAddress)
 {
   return ((1 << OFFSET_WIDTH) - 1) & virtualAddress;
 }
 
-/*
- * extracting the physical address of the wanted page table
- * level from the given logical address (the P_i)
+/**
+ * Extracting the physical address of the wanted page table
+ * Level from the given logical address (the P_i)
+ * @param virtualAddress
+ * @param level
+ * @return physical address
  */
 uint64_t getAddressForLevel (uint64_t virtualAddress, int level)
 {
@@ -53,6 +63,12 @@ bool isEmptyFrame (uint64_t frame)
   return true;
 }
 
+/**
+ * Helper function for case 1 of getFrame
+ * Removing references to this table from its parent
+ * @param parent
+ * @param frame
+ */
 void removeReference (uint64_t parent, uint64_t frame)
 {
   for (uint64_t i = 0; i < PAGE_SIZE; i++)
@@ -65,6 +81,13 @@ void removeReference (uint64_t parent, uint64_t frame)
         }
     }
 }
+
+/**
+ * Helper function updating the cyclical distance, the max/min formula used in case 3 of getFrame
+ * @param virtualPageNum
+ * @param page
+ * @param currentCyclicalDistance
+ */
 void
 updateMaxCyclical (uint64_t virtualPageNum, uint64_t page, uint64_t *currentCyclicalDistance)
 {
@@ -74,6 +97,25 @@ updateMaxCyclical (uint64_t virtualPageNum, uint64_t page, uint64_t *currentCycl
   *currentCyclicalDistance = cyclicalDistance > *currentCyclicalDistance ?
                              cyclicalDistance : *currentCyclicalDistance;
 }
+
+/**
+ * Helper function to retrieve a frame. A frame is chosen from a priority list, from best case to worst case:
+ * 1) A frame containing an empty table
+ * 2) An unused frame
+ * 3) Evicting some page from a frame, chosen using a max/min formula
+ * @param virtualPageNum
+ * @param frame
+ * @param parent
+ * @param maxFrameNum
+ * @param level
+ * @param availableFrame
+ * @param evictPageFromFrameNum
+ * @param parentOfEvictPageFromFrameNum
+ * @param currentCyclicalDistance
+ * @param page
+ * @param unavailableFrame
+ * @param pageToEvict
+ */
 void
 getFrame (uint64_t virtualPageNum, uint64_t frame, uint64_t parent,
           uint64_t *maxFrameNum, int level, uint64_t *availableFrame,
@@ -136,6 +178,11 @@ getFrame (uint64_t virtualPageNum, uint64_t frame, uint64_t parent,
 
 }
 
+/**
+ * Retrieving an address for a given virtual address
+ * @param virtualAddress
+ * @return Physical address to read/write from
+ */
 word_t getAddress (uint64_t virtualAddress)
 {
   uint64_t virtualPageNum = virtualAddress >> OFFSET_WIDTH;
@@ -156,13 +203,13 @@ word_t getAddress (uint64_t virtualAddress)
           getFrame (virtualPageNum, 0, 0, &maxFrameNum,
                     0, &availableFrame, &evictPageFromFrameNum,
                     &parentOfEvictPageFromFrameNum, 0, 0,
-                    oldAddress, &pageToEvict);// get availableFrame according 3 options
+                    oldAddress, &pageToEvict);
           if (availableFrame == 0 || availableFrame == oldAddress)
             {
               availableFrame = maxFrameNum + 1;
             }
           else if (i < TABLES_DEPTH - 1)
-            {
+            {// next layer is a table, need to clear contents of frame
               clearFrame (availableFrame);
             }
 
@@ -179,6 +226,7 @@ word_t getAddress (uint64_t virtualAddress)
           curAddress = availableFrame;
         }
     }
+
   PMrestore (curAddress, virtualPageNum);
   return curAddress;
 }
