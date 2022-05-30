@@ -2,8 +2,6 @@
 #include "PhysicalMemory.h"
 #include <cmath>
 
-
-
 /**
  * Clearing a given frame
  * @param frame
@@ -99,7 +97,7 @@ updateMaxCyclical (uint64_t virtualPageNum, uint64_t page, uint64_t *currentCycl
 }
 
 /**
- * Helper function to retrieve a frame. A frame is chosen from a priority list, from best case to worst case:
+ * Helper DFS function to retrieve a frame. A frame is chosen from a priority list, from best case to worst case:
  * 1) A frame containing an empty table
  * 2) An unused frame
  * 3) Evicting some page from a frame, chosen using a max/min formula
@@ -166,7 +164,8 @@ getFrame (uint64_t virtualPageNum, uint64_t frame, uint64_t parent,
               getFrame (virtualPageNum, child, frame,
                         maxFrameNum, level + 1, availableFrame,
                         evictPageFromFrameNum, parentOfEvictPageFromFrameNum,
-                        currentCyclicalDistance, (page << OFFSET_WIDTH) + row, unavailableFrame, pageToEvict);
+                        currentCyclicalDistance, (page << OFFSET_WIDTH)
+                                                 + row, unavailableFrame, pageToEvict);
 
               if (*availableFrame != 0) //found availableFrame
                 {
@@ -240,11 +239,13 @@ word_t getAddress (uint64_t virtualAddress)
  */
 int VMread (uint64_t virtualAddress, word_t *value)
 {
+  if (VIRTUAL_MEMORY_SIZE < virtualAddress) return 0;
+
   word_t curAddress = getAddress (virtualAddress);
 
   PMread (curAddress * PAGE_SIZE + getOffset (virtualAddress), value);
 
-  return 0;
+  return 1;
 }
 /* Writes a word to the given virtual address.
  *
@@ -254,9 +255,10 @@ int VMread (uint64_t virtualAddress, word_t *value)
  */
 int VMwrite (uint64_t virtualAddress, word_t value)
 {
+  if (VIRTUAL_MEMORY_SIZE < virtualAddress) return 0;
 
   word_t curAddress = getAddress (virtualAddress);
   PMwrite (curAddress * PAGE_SIZE + getOffset (virtualAddress), value);
 
-  return 0;
+  return 1;
 }
