@@ -1,6 +1,5 @@
 #include "VirtualMemory.h"
 #include "PhysicalMemory.h"
-#include <cmath>
 
 /**
  * Clearing a given frame
