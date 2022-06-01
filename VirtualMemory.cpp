@@ -72,7 +72,7 @@ void removeReference (uint64_t parent, uint64_t frame)
     {
         word_t value = 0;
         PMread (parent * PAGE_SIZE + i, &value);
-        if (value == frame)
+        if (value == (word_t) frame)
         {
             PMwrite (parent * PAGE_SIZE + i, 0);
         }
@@ -90,7 +90,7 @@ updateMaxCyclical (uint64_t virtualPageNum, uint64_t page, uint64_t *currentCycl
 {
     uint64_t d = virtualPageNum > page ?
                  virtualPageNum - page : page - virtualPageNum;
-    int cyclicalDistance = NUM_PAGES - d > d ? d : NUM_PAGES - d;
+    uint64_t cyclicalDistance = NUM_PAGES - d > d ? d : NUM_PAGES - d;
     *currentCyclicalDistance = cyclicalDistance > *currentCyclicalDistance ?
                                cyclicalDistance : *currentCyclicalDistance;
 }
@@ -158,7 +158,7 @@ runDFS (uint64_t virtualPageNum, uint64_t frame, uint64_t parent,
 
             if (child != 0)
             {
-                *maxFrameNum = *maxFrameNum > child ? *maxFrameNum : child;
+                *maxFrameNum = *maxFrameNum > (uint64_t) child ? *maxFrameNum : (uint64_t) child;
 
                 runDFS(virtualPageNum, child, frame,
                        maxFrameNum, level + 1, availableFrame,
@@ -187,7 +187,7 @@ uint64_t getFrame(uint64_t virtualPageNum, word_t oldAddress){
            0, &availableFrame, &evictPageFromFrameNum,
            &parentOfEvictPageFromFrameNum, 0, 0,
            oldAddress, &pageToEvict);
-    if (availableFrame == 0 || availableFrame == oldAddress)
+    if (availableFrame == 0 || availableFrame == (uint64_t) oldAddress)
     {
         availableFrame = maxFrameNum + 1;
     }
